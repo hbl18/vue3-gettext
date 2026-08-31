@@ -22,6 +22,7 @@ export async function extractAndCreatePOT(filePaths: string[], potPath: string, 
       const msgs = parseSrc(buffer, {
         mapping: config.input?.parserOptions?.mapping,
         overrideDefaults: config.input?.parserOptions?.overrideDefaultKeywords,
+        comments: config.input?.parserOptions?.comments,
       });
 
       fileMsgMap.push({ path: fp, msgs });
@@ -42,6 +43,9 @@ export async function extractAndCreatePOT(filePaths: string[], potPath: string, 
 
       if (prevItem) {
         prevItem.references.push(...i.references);
+        prevItem.extractedComments.push(
+          ...i.extractedComments.filter((comment) => !prevItem.extractedComments.includes(comment)),
+        );
       } else {
         pot.items.push(i);
       }

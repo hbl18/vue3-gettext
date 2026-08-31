@@ -90,18 +90,31 @@ export type KeywordMapping = {
   ctx?: string[];
 };
 
+export type CommentOptions = {
+  /** extract comments on a preceding line */
+  otherLineLeading?: boolean;
+  /** extract comments before the call on the same line */
+  sameLineLeading?: boolean;
+  /** extract comments after the call on the same line */
+  sameLineTrailing?: boolean;
+};
+
 type ParserOptions =
   | {
       /** extract different keywords */
       mapping: KeywordMapping;
       /** doesn't merge your custom keywords with the default values */
       overrideDefaultKeywords?: true;
+      /** configure translator-comment extraction */
+      comments?: CommentOptions;
     }
   | {
       /** extract different keywords */
       mapping?: KeywordMapping;
       /** doesn't merge your custom keywords with the default values */
       overrideDefaultKeywords?: false;
+      /** configure translator-comment extraction */
+      comments?: CommentOptions;
     };
 
 export interface GettextConfig {

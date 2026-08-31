@@ -56,6 +56,11 @@ const config = {
         ctxPlural: ["$npgettext"],
       },
       overrideDefaultKeywords: false, // do not extract default keywords, `mapping` must be set if this is enabled
+      comments: {
+        otherLineLeading: false, // extract comments on a preceding line
+        sameLineLeading: true, // extract comments before the call on the same line
+        sameLineTrailing: true, // extract comments after the call on the same line
+      },
     },
   },
   output: {
@@ -72,6 +77,10 @@ const config = {
 };
 export default config;
 ```
+
+Extracted source comments are written as translator comments (`#.`) in POT and PO files. When one
+comment position is configured explicitly, unspecified positions are disabled. This matches the
+`gettext-extractor` comment-option behavior used before v4.
 
 ## Gotchas
 
