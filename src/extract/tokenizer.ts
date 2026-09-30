@@ -54,35 +54,91 @@ export function tokenize(mapping: KeywordMapping, src: string): Token[] {
 
   function readString(delimiter: string) {
     let content = "";
-    let prevChar = delimiter;
     let c = advance();
-    function advanceChar() {
-      prevChar = c;
-      c = advance();
-    }
 
     while (true) {
       if (c === "") {
         console.error(`parsing error, string literal is not closed until end of file`);
         break;
       }
-      if (prevChar !== "\\") {
-        if (c === "\\") {
-          advanceChar();
-          continue;
-        }
-        if (c === delimiter) {
-          break;
-        }
+      if (c === delimiter) {
+        break;
       }
+      if (c === "\\") {
+        const escapeStart = idx;
+        const escaped = advance();
 
-      const backSlashInserted = c === "\\";
+        switch (escaped) {
+          case "b":
+            content += "\b";
+            break;
+          case "f":
+            content += "\f";
+            break;
+          case "n":
+            content += "\n";
+            break;
+          case "r":
+            content += "\r";
+            break;
+          case "t":
+            content += "\t";
+            break;
+          case "v":
+            content += "\v";
+            break;
+          case "0":
+            content += "\0";
+            break;
+          case "\n":
+            break;
+          case "\r":
+            if (src.charAt(idx + 1) === "\n") {
+              idx += 1;
+            }
+            break;
+          case "x": {
+            const hex = src.slice(idx + 1, idx + 3);
+            if (/^[\da-f]{2}$/i.test(hex)) {
+              content += String.fromCharCode(parseInt(hex, 16));
+              idx += 2;
+            } else {
+              content += src.slice(escapeStart, idx + 1);
+            }
+            break;
+          }
+          case "u": {
+            if (src.charAt(idx + 1) === "{") {
+              const closingBrace = src.indexOf("}", idx + 2);
+              const hex = src.slice(idx + 2, closingBrace);
+              const codePoint = parseInt(hex, 16);
+              if (closingBrace !== -1 && /^[\da-f]{1,6}$/i.test(hex) && codePoint <= 0x10ffff) {
+                content += String.fromCodePoint(codePoint);
+                idx = closingBrace;
+              } else {
+                content += src.slice(escapeStart, idx + 1);
+              }
+            } else {
+              const hex = src.slice(idx + 1, idx + 5);
+              if (/^[\da-f]{4}$/i.test(hex)) {
+                content += String.fromCharCode(parseInt(hex, 16));
+                idx += 4;
+              } else {
+                content += src.slice(escapeStart, idx + 1);
+              }
+            }
+            break;
+          }
+          default:
+            content += escaped;
+        }
+
+        c = advance();
+        continue;
+      }
 
       content += c;
-      advanceChar();
-      if (backSlashInserted) {
-        prevChar = "\\\\";
-      }
+      c = advance();
     }
     return content.replace(/\r\n/g, "\n");
   }

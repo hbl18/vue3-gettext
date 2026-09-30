@@ -31,6 +31,29 @@ describe("tokenizer", () => {
     ]);
   });
 
+  it("decodes string escape sequences", () => {
+    const source = String.raw`("\b\f\n\r\t\v\0\x21\u0021\u{1f44b}")`;
+
+    expect(tokenize(keywords, source)).toEqual(<Token[]>[
+      { kind: TokenKind.ParenLeft, idx: 0 },
+      {
+        kind: TokenKind.String,
+        value: "\b\f\n\r\t\v\0!!👋",
+        idx: 1,
+      },
+    ]);
+  });
+
+  it("handles escaped line continuations", () => {
+    const source = String.raw`("first\
+second")`;
+
+    expect(tokenize(keywords, source)).toEqual(<Token[]>[
+      { kind: TokenKind.ParenLeft, idx: 0 },
+      { kind: TokenKind.String, value: "firstsecond", idx: 1 },
+    ]);
+  });
+
   it("read vue file", () => {
     const src = `
 <script>
